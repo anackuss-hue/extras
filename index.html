@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
   --bg:#F7F6F4;--surface:#FFF;--border:#E8E5E0;--border2:#C8C2BA;
@@ -24,7 +25,7 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:13px;}
 
-/* HEADER */
+/* NAV */
 .app-header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
 .app-logo{display:flex;align-items:baseline;gap:6px;}
 .app-logo-text{font-family:'Playfair Display',serif;font-size:16px;}
@@ -33,8 +34,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .header-stats{display:flex;gap:24px;font-size:12px;color:var(--text-dim);}
 .header-stats strong{color:var(--text-mid);font-weight:500;}
 
-/* TOOLBAR */
-.toolbar{padding:12px 28px 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:52px;z-index:40;}
+.nav-tabs{display:flex;gap:2px;background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;}
+.nav-tab{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:var(--text-dim);background:none;border:none;border-bottom:2px solid transparent;padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;}
+.nav-tab:hover{color:var(--text-mid);}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* PAGE */
+.page{display:none;}
+.page.active{display:block;}
+
+/* ═══════════════ TOOLBAR (kanban) ═══════════════ */
+.toolbar{padding:12px 28px 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:95px;z-index:40;}
 .toolbar input,.toolbar select{font-family:'Inter',sans-serif;font-size:12px;height:32px;padding:0 10px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;transition:border-color .15s;}
 .toolbar input::placeholder{color:var(--text-dim);}
 .toolbar input:focus,.toolbar select:focus{border-color:var(--border2);background:var(--surface);}
@@ -61,14 +71,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .mass-btn{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;padding:0 12px;height:32px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--text-mid);cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .12s;margin-left:auto;}
 .mass-btn:hover{border-color:var(--border2);color:var(--text);}
 .mass-btn.active{background:var(--text);color:var(--surface);border-color:var(--text);}
-.clear-btn{font-family:'Inter',sans-serif;font-size:11px;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:0 4px;display:flex;align-items:center;gap:3px;transition:color .12s;}
+.clear-btn{font-family:'Inter',sans-serif;font-size:11px;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:0 4px;display:flex;align-items:center;gap:3px;}
 .clear-btn:hover{color:var(--text-mid);}
 
-/* BOARD */
+/* ═══════════════ BOARD ═══════════════ */
 .board-wrap{padding:20px 28px 80px;overflow-x:auto;transition:padding-right .28s;}
 .board-wrap.panel-open{padding-right:calc(var(--panel-w) + 28px);}
 .board{display:flex;gap:12px;min-width:max-content;align-items:flex-start;}
-.col{width:258px;background:var(--surface);border-radius:var(--rl);border:1px solid var(--border);display:flex;flex-direction:column;max-height:calc(100vh - 185px);}
+.col{width:258px;background:var(--surface);border-radius:var(--rl);border:1px solid var(--border);display:flex;flex-direction:column;max-height:calc(100vh - 230px);}
 .col.col-future{border-color:#D8CEE8;}
 .col.col-done{border-color:#B0D8D8;}
 .col.drag-over{border-color:var(--accent);background:#FDFCFB;}
@@ -76,7 +86,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .col-future .col-header{background:#FDFCFF;}
 .col-done .col-header{background:#F5FAFA;}
 .col-title-wrap{flex:1;display:flex;align-items:center;gap:3px;min-width:0;}
-.col-title{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;cursor:text;padding:2px 5px;border-radius:4px;border:1px solid transparent;transition:border-color .12s;}
+.col-title{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;cursor:text;padding:2px 5px;border-radius:4px;border:1px solid transparent;}
 .col-title:hover{border-color:var(--border);}
 .col-title-input{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:var(--text);flex:1;min-width:0;padding:2px 5px;border:1px solid var(--border2);border-radius:4px;background:var(--bg);outline:none;}
 .col-edit-btn{background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:12px;display:flex;align-items:center;padding:2px;border-radius:3px;flex-shrink:0;opacity:0;transition:all .12s;}
@@ -84,7 +94,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .col-count{font-size:11px;font-weight:500;background:var(--bg);border:1px solid var(--border);color:var(--text-dim);border-radius:20px;padding:1px 8px;flex-shrink:0;}
 .col-body{padding:8px;display:flex;flex-direction:column;gap:6px;overflow-y:auto;flex:1;min-height:60px;}
 
-/* CARDS */
 .card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:10px 11px;cursor:pointer;transition:border-color .12s,box-shadow .12s;position:relative;user-select:none;}
 .card:hover{border-color:var(--border2);box-shadow:0 1px 4px rgba(28,25,22,.06);}
 .card.selected{border-color:var(--accent);background:var(--accent-l);}
@@ -93,22 +102,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .card-check{position:absolute;top:8px;right:8px;width:15px;height:15px;border-radius:3px;border:1.5px solid var(--border2);background:var(--surface);display:none;align-items:center;justify-content:center;font-size:9px;color:#fff;}
 .mass-mode .card-check{display:flex;}
 .mass-mode .card.selected .card-check{background:var(--accent);border-color:var(--accent);}
-
-/* card header row */
-.card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px;}
+.card-header-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px;}
 .card-venda{font-size:10px;font-weight:600;color:var(--text-dim);letter-spacing:.04em;}
 .card-periodo{font-size:10px;color:var(--text-dim);display:flex;align-items:center;gap:3px;}
-
-/* passageiros list */
 .card-passageiros{display:flex;flex-direction:column;gap:4px;margin-bottom:7px;}
 .pax-row{display:flex;align-items:center;gap:6px;}
 .pax-avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;flex-shrink:0;}
-.pax-name{font-size:11px;font-weight:500;color:var(--text);line-height:1.3;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pax-name{font-size:11px;font-weight:500;color:var(--text);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pax-more{font-size:10px;color:var(--text-dim);padding-left:28px;}
-
-.card-wedding{font-size:10px;color:var(--text-dim);margin-bottom:5px;display:flex;align-items:center;gap:5px;}
-.card-wedding .w-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
-
+.card-wedding-row{font-size:10px;color:var(--text-dim);margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+.card-wedding-row .w-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;}
 .tag{font-size:9px;font-weight:500;padding:2px 6px;border-radius:4px;}
 .tag-h{background:var(--green-l);color:var(--green);}
@@ -120,12 +123,20 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .aereo-alert{background:#FEF0F0;color:#8A3030;font-size:9px;font-weight:500;padding:2px 6px;border-radius:4px;}
 .finalize-tag{background:var(--done-l);color:var(--done);font-size:9px;font-weight:500;padding:2px 6px;border-radius:4px;cursor:pointer;}
 .note-badge{font-size:9px;color:var(--text-dim);display:flex;align-items:center;gap:2px;margin-top:3px;}
-
-.add-btn{margin:6px 8px 8px;padding:6px;border:1px dashed var(--border);border-radius:var(--r);background:transparent;color:var(--text-dim);font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .12s;flex-shrink:0;}
+.add-btn{margin:6px 8px 8px;padding:6px;border:1px dashed var(--border);border-radius:var(--r);background:transparent;color:var(--text-dim);font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;flex-shrink:0;}
 .add-btn:hover{border-color:var(--border2);color:var(--text-mid);}
 .empty{color:var(--text-dim);font-size:11px;text-align:center;padding:20px 0;}
 
-/* SIDE PANEL */
+/* MASS BAR */
+.mass-bar{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--surface);border-radius:30px;padding:9px 16px;align-items:center;gap:10px;z-index:200;white-space:nowrap;box-shadow:0 4px 24px rgba(28,25,22,.18);}
+.mass-bar.visible{display:flex;}
+.mass-bar span{font-size:12px;font-weight:500;}
+.mass-bar select{font-family:'Inter',sans-serif;font-size:12px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:var(--surface);outline:none;cursor:pointer;}
+.mass-bar select option{background:var(--text);}
+.mass-move-btn{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;padding:5px 13px;border-radius:20px;border:none;background:var(--surface);color:var(--text);cursor:pointer;}
+.mass-cancel{font-family:'Inter',sans-serif;font-size:12px;padding:5px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.6);cursor:pointer;}
+
+/* ═══════════════ SIDE PANEL ═══════════════ */
 .panel-overlay{display:none;position:fixed;inset:0;z-index:100;}
 .panel-overlay.open{display:block;}
 .side-panel{position:fixed;top:0;right:0;bottom:0;width:var(--panel-w);background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;z-index:101;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);box-shadow:-4px 0 24px rgba(28,25,22,.08);}
@@ -142,8 +153,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .panel-tab:hover{color:var(--text-mid);}
 .panel-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 .panel-body{flex:1;overflow-y:auto;}
-
-/* panel sections */
 .panel-section{padding:14px 20px;border-bottom:1px solid var(--border);}
 .panel-section:last-child{border-bottom:none;}
 .panel-section-title{font-size:10px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
@@ -151,8 +160,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .col-pill{font-size:11px;font-weight:500;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text-mid);cursor:pointer;transition:all .12s;}
 .col-pill:hover{border-color:var(--border2);}
 .col-pill.active{background:var(--accent);color:#fff;border-color:var(--accent);}
-
-/* passageiros panel */
 .pax-panel-list{display:flex;flex-direction:column;gap:10px;}
 .pax-panel-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;}
 .pax-panel-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
@@ -163,8 +170,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .pax-contact-label{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;}
 .pax-contact-val{font-size:11px;color:var(--text-mid);}
 .pax-contact-val a{color:var(--blue);text-decoration:none;}
-
-/* info fields */
 .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .info-field{display:flex;flex-direction:column;gap:3px;}
 .info-field.full{grid-column:1/-1;}
@@ -172,8 +177,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .info-value.editable{font-family:'Inter',sans-serif;font-size:12px;color:var(--text);width:100%;padding:5px 8px;border-radius:var(--r);border:1px solid transparent;background:transparent;outline:none;transition:all .12s;cursor:pointer;}
 .info-value.editable:hover{border-color:var(--border);background:var(--bg);}
 .info-value.editable:focus{border-color:var(--border2);background:var(--surface);cursor:text;}
-
-/* services */
 .svc-checks{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
 .svc-check{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-mid);cursor:pointer;padding:6px 8px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg);transition:all .12s;}
 .svc-check input{display:none;}
@@ -182,13 +185,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .svc-check.checked-a{background:var(--blue-l);color:var(--blue);border-color:var(--blue);}
 .svc-check.checked-s{background:var(--rose-l);color:var(--rose);border-color:var(--rose);}
 .svc-check.checked-p{background:var(--amber-l);color:var(--amber);border-color:var(--amber);}
-
 .aereo-box{background:var(--blue-l);border:1px solid #C0D4EA;border-radius:var(--r);padding:8px 11px;font-size:11px;color:var(--blue);display:flex;align-items:center;gap:8px;line-height:1.5;}
 .aereo-box i{font-size:16px;flex-shrink:0;}
 .finalize-btn{width:100%;padding:9px;border-radius:var(--r);border:1px solid var(--done);background:var(--done-l);color:var(--done);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
 .finalize-btn:hover{opacity:.8;}
-
-/* notas */
 .notes-area{padding:14px 20px;display:flex;flex-direction:column;gap:10px;}
 .note-textarea{font-family:'Inter',sans-serif;font-size:12px;color:var(--text);width:100%;min-height:72px;padding:9px 11px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);resize:vertical;outline:none;transition:border-color .12s;line-height:1.6;}
 .note-textarea:focus{border-color:var(--border2);background:var(--surface);}
@@ -202,11 +202,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .note-delete{background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:13px;display:flex;align-items:center;}
 .note-delete:hover{color:#8A3030;}
 .note-text{font-size:12px;color:var(--text-mid);line-height:1.6;white-space:pre-wrap;}
-.empty-state{color:var(--text-dim);font-size:12px;text-align:center;padding:28px 0;display:flex;flex-direction:column;align-items:center;gap:6px;}
-.empty-state i{font-size:26px;color:var(--border2);}
-
-/* histórico */
-.history-list{padding:14px 20px;display:flex;flex-direction:column;gap:0;}
+.history-list{padding:14px 20px;display:flex;flex-direction:column;}
 .history-item{display:flex;gap:12px;padding-bottom:14px;position:relative;}
 .history-item::before{content:'';position:absolute;left:11px;top:22px;bottom:0;width:1px;background:var(--border);}
 .history-item:last-child::before{display:none;}
@@ -214,22 +210,59 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .history-content{flex:1;padding-top:2px;}
 .history-action{font-size:12px;color:var(--text);line-height:1.4;}
 .history-time{font-size:10px;color:var(--text-dim);margin-top:2px;}
-
-/* panel footer */
+.empty-state{color:var(--text-dim);font-size:12px;text-align:center;padding:28px 0;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.empty-state i{font-size:26px;color:var(--border2);}
 .panel-footer{padding:11px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;}
 .panel-save-btn{flex:1;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;padding:8px 0;border-radius:var(--r);border:none;background:var(--text);color:var(--surface);cursor:pointer;}
 .panel-save-btn:hover{opacity:.85;}
 .panel-del-btn{font-family:'Inter',sans-serif;font-size:12px;padding:8px 13px;border-radius:var(--r);border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;}
 .panel-del-btn:hover{border-color:#C8A0A0;color:#8A3030;}
 
-/* MASS BAR */
-.mass-bar{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--surface);border-radius:30px;padding:9px 16px;align-items:center;gap:10px;z-index:200;white-space:nowrap;box-shadow:0 4px 24px rgba(28,25,22,.18);}
-.mass-bar.visible{display:flex;}
-.mass-bar span{font-size:12px;font-weight:500;}
-.mass-bar select{font-family:'Inter',sans-serif;font-size:12px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:var(--surface);outline:none;cursor:pointer;}
-.mass-bar select option{background:var(--text);}
-.mass-move-btn{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;padding:5px 13px;border-radius:20px;border:none;background:var(--surface);color:var(--text);cursor:pointer;}
-.mass-cancel{font-family:'Inter',sans-serif;font-size:12px;padding:5px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.6);cursor:pointer;}
+/* ═══════════════ SEGMENTAÇÃO PAGE ═══════════════ */
+.seg-page{padding:28px;}
+.seg-header{margin-bottom:24px;}
+.seg-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--text);margin-bottom:6px;}
+.seg-subtitle{font-size:12px;color:var(--text-dim);line-height:1.6;}
+
+.seg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:32px;}
+.seg-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;cursor:pointer;transition:all .15s;position:relative;}
+.seg-card:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(28,25,22,.06);}
+.seg-card.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-l);}
+.seg-card-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.seg-card-count{font-size:24px;font-weight:600;color:var(--text);line-height:1;margin-bottom:2px;}
+.seg-card-sub{font-size:11px;color:var(--text-dim);}
+.seg-card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
+.seg-card .tag{font-size:10px;padding:3px 8px;}
+.seg-card-check{position:absolute;top:12px;right:12px;width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;transition:all .12s;}
+.seg-card.active .seg-card-check{background:var(--accent);border-color:var(--accent);}
+
+.seg-all-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;cursor:pointer;transition:all .15s;}
+.seg-all-card:hover{border-color:var(--border2);}
+.seg-all-card.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-l);}
+
+/* table area */
+.table-area{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;}
+.table-toolbar{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.table-toolbar-title{font-size:13px;font-weight:500;color:var(--text);flex:1;}
+.table-toolbar-sub{font-size:11px;color:var(--text-dim);}
+.export-btn{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;padding:6px 14px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--text-mid);cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .12s;}
+.export-btn:hover{border-color:var(--border2);color:var(--text);}
+.export-btn.primary{background:var(--text);color:var(--surface);border-color:var(--text);}
+.export-btn.primary:hover{opacity:.85;}
+.export-btn.green{background:var(--green-l);color:var(--green);border-color:var(--green);}
+
+.seg-search{font-family:'Inter',sans-serif;font-size:12px;height:30px;padding:0 10px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;width:200px;}
+.seg-search::placeholder{color:var(--text-dim);}
+.seg-search:focus{border-color:var(--border2);}
+
+.data-table{width:100%;border-collapse:collapse;font-size:12px;}
+.data-table th{padding:9px 12px;text-align:left;font-size:10px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);background:var(--bg);white-space:nowrap;}
+.data-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text-mid);vertical-align:middle;}
+.data-table tr:last-child td{border-bottom:none;}
+.data-table tr:hover td{background:#FAFAF8;}
+.data-table .td-name{font-weight:500;color:var(--text);}
+.data-table .td-venda{font-weight:500;color:var(--text-dim);font-size:11px;}
+.empty-table{padding:32px;text-align:center;color:var(--text-dim);font-size:12px;}
 
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
@@ -251,35 +284,69 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 </header>
 
-<div class="toolbar">
-  <input type="text" id="search" placeholder="Buscar passageiro ou venda...">
-  <div class="wedding-wrap" id="weddingWrap">
-    <input type="text" id="weddingSearch" placeholder="Casamento..." autocomplete="off"
-      oninput="onWeddingInput()" onfocus="onWeddingFocus()" onblur="onWeddingBlur()">
-    <div class="wedding-dropdown" id="weddingDropdown"></div>
-  </div>
-  <div class="divider"></div>
-  <div class="date-range">
-    <input type="date" id="dateFrom" title="Chegada a partir de">
-    <span class="date-sep">→</span>
-    <input type="date" id="dateTo" title="Chegada até">
-  </div>
-  <div class="divider"></div>
-  <div class="service-filter">
-    <button class="svc-btn" id="svc-h" onclick="toggleSvc('hospedagem')">🏨 Hosp.</button>
-    <button class="svc-btn" id="svc-a" onclick="toggleSvc('aereo')">✈ Aéreo</button>
-    <button class="svc-btn" id="svc-s" onclick="toggleSvc('seguro')">🛡 Seguro</button>
-    <button class="svc-btn" id="svc-p" onclick="toggleSvc('transfer')">🚗 Transfer</button>
-  </div>
-  <div class="divider"></div>
-  <button class="clear-btn" onclick="clearFilters()"><i class="ti ti-x"></i> Limpar</button>
-  <button class="mass-btn" id="massToggle" onclick="toggleMassMode()"><i class="ti ti-checkboxes"></i> Selecionar</button>
+<div class="nav-tabs">
+  <button class="nav-tab active" id="ntab-kanban" onclick="switchPage('kanban')"><i class="ti ti-layout-kanban"></i> Kanban</button>
+  <button class="nav-tab" id="ntab-seg" onclick="switchPage('seg')"><i class="ti ti-filter"></i> Segmentação</button>
 </div>
 
-<div class="board-wrap" id="boardWrap">
-  <div class="board" id="board"></div>
+<!-- ══ PAGE: KANBAN ══ -->
+<div class="page active" id="page-kanban">
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Buscar passageiro ou venda...">
+    <div class="wedding-wrap" id="weddingWrap">
+      <input type="text" id="weddingSearch" placeholder="Casamento..." autocomplete="off"
+        oninput="onWeddingInput()" onfocus="onWeddingFocus()" onblur="onWeddingBlur()">
+      <div class="wedding-dropdown" id="weddingDropdown"></div>
+    </div>
+    <div class="divider"></div>
+    <div class="date-range">
+      <input type="date" id="dateFrom">
+      <span class="date-sep">→</span>
+      <input type="date" id="dateTo">
+    </div>
+    <div class="divider"></div>
+    <div class="service-filter">
+      <button class="svc-btn" id="svc-h" onclick="toggleSvc('hospedagem')">🏨 Hosp.</button>
+      <button class="svc-btn" id="svc-a" onclick="toggleSvc('aereo')">✈ Aéreo</button>
+      <button class="svc-btn" id="svc-s" onclick="toggleSvc('seguro')">🛡 Seguro</button>
+      <button class="svc-btn" id="svc-p" onclick="toggleSvc('transfer')">🚗 Transfer</button>
+    </div>
+    <div class="divider"></div>
+    <button class="clear-btn" onclick="clearFilters()"><i class="ti ti-x"></i> Limpar</button>
+    <button class="mass-btn" id="massToggle" onclick="toggleMassMode()"><i class="ti ti-checkboxes"></i> Selecionar</button>
+  </div>
+
+  <div class="board-wrap" id="boardWrap">
+    <div class="board" id="board"></div>
+  </div>
 </div>
 
+<!-- ══ PAGE: SEGMENTAÇÃO ══ -->
+<div class="page" id="page-seg">
+  <div class="seg-page">
+    <div class="seg-header">
+      <div class="seg-title">Segmentação para disparos</div>
+      <div class="seg-subtitle">Selecione uma ou mais combinações de serviços para ver e exportar a lista de passageiros correspondente.</div>
+    </div>
+
+    <div class="seg-grid" id="segGrid"></div>
+
+    <div class="table-area" id="tableArea">
+      <div class="table-toolbar">
+        <div>
+          <div class="table-toolbar-title" id="tableTitle">Selecione uma combinação acima</div>
+          <div class="table-toolbar-sub" id="tableSub"></div>
+        </div>
+        <input class="seg-search" id="segSearch" placeholder="Filtrar por nome..." oninput="renderTable()">
+        <button class="export-btn green" onclick="exportCSV()"><i class="ti ti-file-text"></i> Exportar CSV</button>
+        <button class="export-btn primary" onclick="exportXLSX()"><i class="ti ti-file-spreadsheet"></i> Exportar Excel</button>
+      </div>
+      <div id="tableContainer"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SIDE PANEL -->
 <div class="panel-overlay" id="panelOverlay" onclick="closePanel()"></div>
 <div class="side-panel" id="sidePanel">
   <div class="panel-header" id="panelHeader"></div>
@@ -313,7 +380,7 @@ const COLORS=[
   {dot:'#5A4A7A',l:'#EDEAF5',t:'#2A2040'},{dot:'#3D5A7A',l:'#E8EEF5',t:'#182840'},
   {dot:'#6A5A3D',l:'#F0EDE5',t:'#362E18'},{dot:'#3D7A5A',l:'#E8F5EC',t:'#1A4030'},
 ];
-const LS_KEY='ww_kanban_v7';
+const LS_KEY='ww_kanban_v8';
 
 let cols=[
   {id:'oportunidade_futura',label:'Oportunidade futura'},
@@ -328,6 +395,10 @@ let cols=[
 let cards=[], searchT='', filterW='', dateFrom='', dateTo='';
 let activeSvcs=new Set(), editingCol=null, massMode=false, selected=new Set();
 let activePanelId=null, activeTab='info', dragId=null;
+let activePage='kanban';
+
+// seg state
+let activeSegKeys=new Set(); // set of combo-keys currently selected
 
 // ── PERSIST ──────────────────────────────────────────────────────────────────
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify({cols,cards}));}catch(e){}}
@@ -349,6 +420,16 @@ function load(){
   cards=SEED.map(s=>({...s,notas:s.notas||[],historico:s.historico||[]}));
 }
 
+// ── PAGE NAV ─────────────────────────────────────────────────────────────────
+function switchPage(page){
+  activePage=page;
+  ['kanban','seg'].forEach(p=>{
+    document.getElementById('page-'+p).className='page'+(p===page?' active':'');
+    document.getElementById('ntab-'+p).className='nav-tab'+(p===page?' active':'');
+  });
+  if(page==='seg') renderSegPage();
+}
+
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 function wc(w){const i=WEDDINGS.findIndex(x=>x.nome===w);return COLORS[(i<0?0:i)%COLORS.length];}
 function fmt(d){if(!d||d==='—')return'—';try{const[y,m,day]=String(d).split('T')[0].split('-');return`${day}/${m}/${y}`;}catch{return d;}}
@@ -368,12 +449,7 @@ function aereoStatus(c){
 function isFinalizable(c){const s=new Set(c.servicos||[]);return s.has('hospedagem')&&s.has('aereo')&&s.has('seguro');}
 function cardMatchesFilters(c){
   if(filterW&&c.casamento!==filterW)return false;
-  if(searchT){
-    const q=searchT.toLowerCase();
-    const inPax=(c.passageiros||[]).some(p=>p.nome.toLowerCase().includes(q));
-    const inNum=String(c.vendaNum).includes(q);
-    if(!inPax&&!inNum)return false;
-  }
+  if(searchT){const q=searchT.toLowerCase();const inPax=(c.passageiros||[]).some(p=>p.nome.toLowerCase().includes(q));const inNum=String(c.vendaNum).includes(q);if(!inPax&&!inNum)return false;}
   if(dateFrom&&c.chegada&&c.chegada<dateFrom)return false;
   if(dateTo&&c.chegada&&c.chegada>dateTo)return false;
   if(activeSvcs.size&&![...activeSvcs].every(s=>(c.servicos||[]).includes(s)))return false;
@@ -384,6 +460,177 @@ function totalPax(){return cards.filter(c=>cardMatchesFilters(c)).reduce((a,c)=>
 function totalVisible(){return cards.filter(c=>cardMatchesFilters(c)).length;}
 function weddingsVisible(){return new Set(cards.filter(c=>cardMatchesFilters(c)).map(c=>c.casamento)).size;}
 function addHistory(c,action){if(!c.historico)c.historico=[];c.historico.unshift({ts:Date.now(),action});if(c.historico.length>60)c.historico=c.historico.slice(0,60);}
+
+// ── SEGMENTATION ─────────────────────────────────────────────────────────────
+const SVC_LABELS={hospedagem:'🏨 Hospedagem',aereo:'✈ Aéreo',seguro:'🛡 Seguro',transfer:'🚗 Transfer'};
+const SVC_TAG_CLS={hospedagem:'tag-h',aereo:'tag-a',seguro:'tag-s',transfer:'tag-p'};
+
+function getComboKey(svcs){return [...svcs].sort().join('+');}
+
+function buildCombos(){
+  // gather all combos present in data
+  const map={};
+  cards.forEach(c=>{
+    const key=getComboKey(c.servicos||[]);
+    if(!map[key]){map[key]={svcs:new Set(c.servicos||[]),cards:[]};}
+    map[key].cards.push(c);
+  });
+  return map;
+}
+
+function renderSegPage(){
+  const combos=buildCombos();
+  const grid=document.getElementById('segGrid');
+
+  // build all possible combos in order of count
+  const sorted=Object.entries(combos).sort((a,b)=>b[1].cards.length-a[1].cards.length);
+
+  grid.innerHTML = sorted.map(([key, data])=>{
+    const svcsArr=[...data.svcs].sort();
+    const paxCount=data.cards.reduce((a,c)=>a+(c.passageiros||[]).length,0);
+    const isActive=activeSegKeys.has(key);
+    const tagsHtml=svcsArr.length
+      ? svcsArr.map(s=>`<span class="tag ${SVC_TAG_CLS[s]||''}">${SVC_LABELS[s]||s}</span>`).join('')
+      : '<span class="tag" style="background:var(--bg);color:var(--text-dim);">Nenhum serviço</span>';
+    const title=svcsArr.length ? svcsArr.map(s=>SVC_LABELS[s]||s).join(' + ') : 'Sem serviço definido';
+    return`<div class="seg-card${isActive?' active':''}" onclick="toggleSegKey('${key}')">
+      <div class="seg-card-check">${isActive?'✓':''}</div>
+      <div class="seg-card-count">${data.cards.length}</div>
+      <div class="seg-card-sub">${paxCount} passageiro${paxCount!==1?'s':''}</div>
+      <div class="seg-card-tags">${tagsHtml}</div>
+    </div>`;
+  }).join('');
+
+  renderTable();
+}
+
+function toggleSegKey(key){
+  if(activeSegKeys.has(key))activeSegKeys.delete(key); else activeSegKeys.add(key);
+  renderSegPage();
+}
+
+function getSegRows(){
+  // flatten passageiros from selected combos
+  const combos=buildCombos();
+  const rows=[];
+  const segQ=(document.getElementById('segSearch')?.value||'').toLowerCase().trim();
+  const keysToUse=activeSegKeys.size>0?[...activeSegKeys]:Object.keys(combos);
+  keysToUse.forEach(key=>{
+    if(!combos[key])return;
+    combos[key].cards.forEach(c=>{
+      (c.passageiros||[]).forEach(p=>{
+        if(segQ&&!p.nome.toLowerCase().includes(segQ))return;
+        rows.push({
+          vendaNum: c.vendaNum,
+          casamento: c.casamento,
+          dataCasamento: c.dataCasamento,
+          chegada: c.chegada,
+          saida: c.saida,
+          servicos: (c.servicos||[]).join(', '),
+          nome: p.nome,
+          email: p.email||'',
+          celular: p.celular||'',
+          telefone: p.telefone||'',
+          cpf: p.cpf||'',
+          etapa: cols.find(x=>x.id===c.col)?.label||c.col,
+        });
+      });
+    });
+  });
+  return rows;
+}
+
+function renderTable(){
+  const rows=getSegRows();
+  const container=document.getElementById('tableContainer');
+  const title=document.getElementById('tableTitle');
+  const sub=document.getElementById('tableSub');
+
+  if(activeSegKeys.size===0){
+    title.textContent='Todos os passageiros';
+  } else {
+    const combos=buildCombos();
+    const labels=[...activeSegKeys].map(k=>{
+      const svcs=[...(combos[k]?.svcs||[])].sort().map(s=>SVC_LABELS[s]||s).join(' + ');
+      return svcs||'Sem serviço';
+    });
+    title.textContent=labels.join(' · ');
+  }
+  sub.textContent=`${rows.length} passageiro${rows.length!==1?'s':''}`;
+
+  if(!rows.length){
+    container.innerHTML=`<div class="empty-table">Nenhum passageiro encontrado</div>`;
+    return;
+  }
+
+  container.innerHTML=`<div style="overflow-x:auto;">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Casamento</th>
+        <th>Data casamento</th>
+        <th>Chegada</th>
+        <th>Saída</th>
+        <th>Serviços</th>
+        <th>Etapa</th>
+        <th>E-mail</th>
+        <th>Celular</th>
+        <th>Telefone</th>
+        <th>CPF</th>
+        <th>Venda #</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map(r=>`<tr>
+        <td class="td-name">${r.nome}</td>
+        <td>${r.casamento}</td>
+        <td>${fmt(r.dataCasamento)}</td>
+        <td>${fmt(r.chegada)}</td>
+        <td>${fmt(r.saida)}</td>
+        <td>${r.servicos}</td>
+        <td>${r.etapa}</td>
+        <td>${r.email?`<a href="mailto:${r.email}" style="color:var(--blue);text-decoration:none;">${r.email}</a>`:''}</td>
+        <td>${r.celular}</td>
+        <td>${r.telefone}</td>
+        <td>${r.cpf}</td>
+        <td class="td-venda">${r.vendaNum}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table>
+  </div>`;
+}
+
+function exportCSV(){
+  const rows=getSegRows();
+  if(!rows.length){alert('Nenhum passageiro para exportar.');return;}
+  const headers=['Nome','Casamento','Data Casamento','Chegada','Saída','Serviços','Etapa','Email','Celular','Telefone','CPF','Venda Nº'];
+  const lines=[headers.join(',')];
+  rows.forEach(r=>{
+    const vals=[r.nome,r.casamento,r.dataCasamento,r.chegada,r.saida,r.servicos,r.etapa,r.email,r.celular,r.telefone,r.cpf,r.vendaNum];
+    lines.push(vals.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','));
+  });
+  const bom='\uFEFF';
+  const blob=new Blob([bom+lines.join('\n')],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`ww_segmentacao_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+function exportXLSX(){
+  const rows=getSegRows();
+  if(!rows.length){alert('Nenhum passageiro para exportar.');return;}
+  const wsData=[
+    ['Nome','Casamento','Data Casamento','Chegada','Saída','Serviços','Etapa','Email','Celular','Telefone','CPF','Venda Nº'],
+    ...rows.map(r=>[r.nome,r.casamento,r.dataCasamento,r.chegada,r.saida,r.servicos,r.etapa,r.email,r.celular,r.telefone,r.cpf,r.vendaNum])
+  ];
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(wsData);
+  // col widths
+  ws['!cols']=[{wch:30},{wch:22},{wch:14},{wch:12},{wch:12},{wch:28},{wch:16},{wch:32},{wch:16},{wch:14},{wch:16},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,ws,'Segmentação');
+  XLSX.writeFile(wb,`ww_segmentacao_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
 
 // ── WEDDING AUTOCOMPLETE ──────────────────────────────────────────────────────
 function onWeddingInput(){filterW='';renderWeddingDropdown();render();}
@@ -412,7 +659,7 @@ function selectWedding(nome){
   render();
 }
 
-// ── SERVICES ─────────────────────────────────────────────────────────────────
+// ── SERVICES (kanban filter) ──────────────────────────────────────────────────
 const SVC_MAP={hospedagem:'h',aereo:'a',seguro:'s',transfer:'p'};
 function toggleSvc(svc){
   if(activeSvcs.has(svc))activeSvcs.delete(svc);else activeSvcs.add(svc);
@@ -432,39 +679,21 @@ function onDragEnd(e){e.target.classList.remove('dragging');document.querySelect
 function onDragOver(e,cid){e.preventDefault();document.querySelectorAll('.col').forEach(c=>c.classList.remove('drag-over'));const el=document.querySelector(`[data-col="${cid}"]`);if(el)el.classList.add('drag-over');}
 function onDragLeave(e,cid){const el=document.querySelector(`[data-col="${cid}"]`);if(el&&!el.contains(e.relatedTarget))el.classList.remove('drag-over');}
 function onDrop(e,cid){
-  e.preventDefault();
-  const id=e.dataTransfer.getData('text/plain')||dragId;
-  if(!id)return;
+  e.preventDefault();const id=e.dataTransfer.getData('text/plain')||dragId; if(!id)return;
   const c=cards.find(x=>x.id===id);
-  if(c&&c.col!==cid){
-    const oL=cols.find(x=>x.id===c.col)?.label||c.col;
-    const nL=cols.find(x=>x.id===cid)?.label||cid;
-    addHistory(c,`Movido de "${oL}" para "${nL}"`);
-    c.col=cid;save();
-    if(activePanelId===id)renderPanel();
-  }
-  document.querySelectorAll('.col').forEach(c=>c.classList.remove('drag-over'));
-  render();
+  if(c&&c.col!==cid){const oL=cols.find(x=>x.id===c.col)?.label||c.col;const nL=cols.find(x=>x.id===cid)?.label||cid;addHistory(c,`Movido de "${oL}" para "${nL}"`);c.col=cid;save();if(activePanelId===id)renderPanel();}
+  document.querySelectorAll('.col').forEach(c=>c.classList.remove('drag-over'));render();
 }
 
 // ── RENDER BOARD ──────────────────────────────────────────────────────────────
 function renderCard(c){
-  const wcolor=wc(c.casamento);
-  const n=nights(c.chegada,c.saida);
-  const ae=aereoStatus(c);
-  const sel=selected.has(c.id);
-  const isActive=activePanelId===c.id;
-  const pax=c.passageiros||[];
-  const MAX_PAX=3;
-
-  // passageiro rows
-  const paxRows=pax.slice(0,MAX_PAX).map(p=>`
-    <div class="pax-row">
-      <div class="pax-avatar" style="background:${wcolor.l};color:${wcolor.t};">${ini(p.nome)}</div>
-      <span class="pax-name">${p.nome}</span>
-    </div>`).join('');
+  const wcolor=wc(c.casamento);const n=nights(c.chegada,c.saida);const ae=aereoStatus(c);
+  const sel=selected.has(c.id);const isActive=activePanelId===c.id;
+  const pax=c.passageiros||[];const MAX_PAX=3;
+  const paxRows=pax.slice(0,MAX_PAX).map(p=>`<div class="pax-row">
+    <div class="pax-avatar" style="background:${wcolor.l};color:${wcolor.t};">${ini(p.nome)}</div>
+    <span class="pax-name">${p.nome}</span></div>`).join('');
   const paxMore=pax.length>MAX_PAX?`<div class="pax-more">+${pax.length-MAX_PAX} mais</div>`:'';
-
   let tags='';
   if((c.servicos||[]).includes('hospedagem'))tags+=`<span class="tag tag-h">Hosp.</span>`;
   if((c.servicos||[]).includes('aereo'))tags+=`<span class="tag tag-a">Aéreo</span>`;
@@ -472,44 +701,29 @@ function renderCard(c){
   if((c.servicos||[]).includes('transfer'))tags+=`<span class="tag tag-p">Transfer</span>`;
   if(ae&&ae.cls)tags+=`<span class="${ae.cls}">${ae.label}</span>`;
   if(isFinalizable(c)&&c.col!=='finalizado')tags+=`<span class="finalize-tag" onclick="event.stopPropagation();quickFinalize('${c.id}')">✓ Finalizar</span>`;
-
   const noteBadge=(c.notas||[]).length?`<div class="note-badge"><i class="ti ti-note" style="font-size:10px;"></i>${c.notas.length} nota${c.notas.length>1?'s':''}</div>`:'';
-
   return`<div class="card${sel?' selected':''}${isActive?' active-panel':''}" data-id="${c.id}"
     draggable="true" ondragstart="onDragStart(event,'${c.id}')" ondragend="onDragEnd(event)"
     onclick="cardClick(event,'${c.id}')">
     <div class="card-check">${sel?'✓':''}</div>
-    <div class="card-header">
+    <div class="card-header-row">
       <span class="card-venda">Venda #${c.vendaNum}</span>
       ${(c.chegada||c.saida)?`<span class="card-periodo"><i class="ti ti-calendar" style="font-size:10px;"></i>${fmt(c.chegada)}${n?' · '+n+'n':''}</span>`:''}
     </div>
-    <div class="card-wedding">
-      <span class="w-dot" style="background:${wcolor.dot};"></span>${c.casamento}
-    </div>
+    <div class="card-wedding-row"><span class="w-dot" style="background:${wcolor.dot};"></span>${c.casamento}</div>
     <div class="card-passageiros">${paxRows}${paxMore}</div>
-    ${tags?`<div class="tags">${tags}</div>`:''}
-    ${noteBadge}
+    ${tags?`<div class="tags">${tags}</div>`:''}${noteBadge}
   </div>`;
 }
-
 function renderColHeader(col){
   const cnt=filtC(col.id).length;
   const isFuture=col.id==='oportunidade_futura',isDone=col.id==='finalizado';
   const icon=isFuture?`<i class="ti ti-clock" style="font-size:12px;color:var(--future);margin-right:3px;"></i>`:isDone?`<i class="ti ti-circle-check" style="font-size:12px;color:var(--done);margin-right:3px;"></i>`:'';
-  if(editingCol===col.id){
-    return`<div class="col-header"><div class="col-title-wrap">
-      <input class="col-title-input" id="ci-${col.id}" value="${col.label}"
-        onblur="commitCol('${col.id}')"
-        onkeydown="if(event.key==='Enter')commitCol('${col.id}');else if(event.key==='Escape'){editingCol=null;render();}">
-    </div><span class="col-count">${cnt}</span></div>`;
-  }
-  return`<div class="col-header"><div class="col-title-wrap">${icon}
-    <span class="col-title" onclick="startEditCol('${col.id}')">${col.label}</span>
-    <button class="col-edit-btn" onclick="startEditCol('${col.id}')"><i class="ti ti-pencil"></i></button>
-  </div><span class="col-count">${cnt}</span></div>`;
+  if(editingCol===col.id){return`<div class="col-header"><div class="col-title-wrap"><input class="col-title-input" id="ci-${col.id}" value="${col.label}" onblur="commitCol('${col.id}')" onkeydown="if(event.key==='Enter')commitCol('${col.id}');else if(event.key==='Escape'){editingCol=null;render();}"></div><span class="col-count">${cnt}</span></div>`;}
+  return`<div class="col-header"><div class="col-title-wrap">${icon}<span class="col-title" onclick="startEditCol('${col.id}')">${col.label}</span><button class="col-edit-btn" onclick="startEditCol('${col.id}')"><i class="ti ti-pencil"></i></button></div><span class="col-count">${cnt}</span></div>`;
 }
-
 function render(){
+  if(activePage!=='kanban')return;
   const board=document.getElementById('board');
   board.className=massMode?'board mass-mode':'board';
   board.innerHTML=cols.map(col=>{
@@ -533,31 +747,10 @@ function render(){
 }
 
 // ── PANEL ─────────────────────────────────────────────────────────────────────
-function openPanel(id){
-  activePanelId=id; activeTab='info';
-  document.getElementById('panelOverlay').classList.add('open');
-  document.getElementById('sidePanel').classList.add('open');
-  document.getElementById('boardWrap').classList.add('panel-open');
-  renderPanel(); render();
-}
-function openAddPanel(colId){
-  const tmpId='new_'+Date.now();
-  cards.push({id:tmpId,col:colId,vendaNum:'',casamento:WEDDINGS[0]?.nome||'',chegada:'',saida:'',abrioAereo:'',dataCasamento:'',servicos:[],passageiros:[],obs:'',notas:[],historico:[],produto:'',fornecedor:'',dataVenda:'',isNew:true});
-  openPanel(tmpId);
-}
-function closePanel(){
-  cards=cards.filter(c=>!c.isNew);
-  activePanelId=null;
-  document.getElementById('panelOverlay').classList.remove('open');
-  document.getElementById('sidePanel').classList.remove('open');
-  document.getElementById('boardWrap').classList.remove('panel-open');
-  render();
-}
-function switchTab(tab){
-  activeTab=tab;
-  ['info','dados','notas','hist'].forEach(t=>{document.getElementById('tab-'+t).className='panel-tab'+(t===tab?' active':'');});
-  renderPanelBody();
-}
+function openPanel(id){activePanelId=id;activeTab='info';document.getElementById('panelOverlay').classList.add('open');document.getElementById('sidePanel').classList.add('open');document.getElementById('boardWrap')?.classList.add('panel-open');renderPanel();render();}
+function openAddPanel(colId){const tmpId='new_'+Date.now();cards.push({id:tmpId,col:colId,vendaNum:'',casamento:WEDDINGS[0]?.nome||'',chegada:'',saida:'',abrioAereo:'',dataCasamento:'',servicos:[],passageiros:[],obs:'',notas:[],historico:[],produto:'',fornecedor:'',dataVenda:'',isNew:true});openPanel(tmpId);}
+function closePanel(){cards=cards.filter(c=>!c.isNew);activePanelId=null;document.getElementById('panelOverlay').classList.remove('open');document.getElementById('sidePanel').classList.remove('open');document.getElementById('boardWrap')?.classList.remove('panel-open');render();}
+function switchTab(tab){activeTab=tab;['info','dados','notas','hist'].forEach(t=>{document.getElementById('tab-'+t).className='panel-tab'+(t===tab?' active':'');});renderPanelBody();}
 function renderPanel(){
   const c=cards.find(x=>x.id===activePanelId); if(!c) return;
   const wcolor=wc(c.casamento);
@@ -582,179 +775,70 @@ function renderPanelBody(){
   else if(activeTab==='notas') body.innerHTML=renderTabNotas(c);
   else body.innerHTML=renderTabHist(c);
 }
-
 function renderTabPassageiros(c){
   const wcolor=wc(c.casamento);
-  const paxList=(c.passageiros||[]).map((p,i)=>`
-    <div class="pax-panel-item">
-      <div class="pax-panel-header">
-        <div class="pax-panel-avatar" style="background:${wcolor.l};color:${wcolor.t};">${ini(p.nome)}</div>
-        <span class="pax-panel-name">${p.nome}</span>
-      </div>
-      <div class="pax-contacts">
-        ${p.celular?`<div class="pax-contact"><span class="pax-contact-label">Celular</span><span class="pax-contact-val"><a href="tel:${p.celular}">${p.celular}</a></span></div>`:''}
-        ${p.telefone?`<div class="pax-contact"><span class="pax-contact-label">Telefone</span><span class="pax-contact-val">${p.telefone}</span></div>`:''}
-        ${p.email?`<div class="pax-contact pax-contact" style="grid-column:1/-1"><span class="pax-contact-label">E-mail</span><span class="pax-contact-val"><a href="mailto:${p.email}">${p.email}</a></span></div>`:''}
-        ${p.cpf?`<div class="pax-contact"><span class="pax-contact-label">CPF</span><span class="pax-contact-val">${p.cpf}</span></div>`:''}
-      </div>
-    </div>`).join('');
-  return`<div class="panel-section">
-    <div class="panel-section-title">Etapa</div>
-    <div class="col-selector">${cols.map(col=>`<span class="col-pill${c.col===col.id?' active':''}" onclick="changeCol('${c.id}','${col.id}')">${col.label}</span>`).join('')}</div>
-  </div>
-  <div class="panel-section">
-    <div class="panel-section-title">${(c.passageiros||[]).length} Passageiro${(c.passageiros||[]).length!==1?'s':''}</div>
-    <div class="pax-panel-list">${paxList||'<div style="color:var(--text-dim);font-size:12px;">Nenhum passageiro</div>'}</div>
-  </div>`;
+  const paxList=(c.passageiros||[]).map(p=>`<div class="pax-panel-item">
+    <div class="pax-panel-header"><div class="pax-panel-avatar" style="background:${wcolor.l};color:${wcolor.t};">${ini(p.nome)}</div><span class="pax-panel-name">${p.nome}</span></div>
+    <div class="pax-contacts">
+      ${p.celular?`<div class="pax-contact"><span class="pax-contact-label">Celular</span><span class="pax-contact-val"><a href="tel:${p.celular}">${p.celular}</a></span></div>`:''}
+      ${p.telefone?`<div class="pax-contact"><span class="pax-contact-label">Telefone</span><span class="pax-contact-val">${p.telefone}</span></div>`:''}
+      ${p.email?`<div class="pax-contact" style="grid-column:1/-1"><span class="pax-contact-label">E-mail</span><span class="pax-contact-val"><a href="mailto:${p.email}">${p.email}</a></span></div>`:''}
+      ${p.cpf?`<div class="pax-contact"><span class="pax-contact-label">CPF</span><span class="pax-contact-val">${p.cpf}</span></div>`:''}
+    </div></div>`).join('');
+  return`<div class="panel-section"><div class="panel-section-title">Etapa</div><div class="col-selector">${cols.map(col=>`<span class="col-pill${c.col===col.id?' active':''}" onclick="changeCol('${c.id}','${col.id}')">${col.label}</span>`).join('')}</div></div>
+  <div class="panel-section"><div class="panel-section-title">${(c.passageiros||[]).length} Passageiro${(c.passageiros||[]).length!==1?'s':''}</div><div class="pax-panel-list">${paxList||'<div style="color:var(--text-dim);font-size:12px;">Nenhum passageiro</div>'}</div></div>`;
 }
-
 function renderTabDados(c){
   const ae=aereoStatus(c);
   const wOpts=WEDDINGS.map(w=>`<option value="${w.nome}"${w.nome===c.casamento?' selected':''}>${w.nome}</option>`).join('');
-  const svcItems=[
-    {k:'hospedagem',icon:'🏨',label:'Hospedagem',cls:'h'},
-    {k:'aereo',icon:'✈',label:'Aéreo',cls:'a'},
-    {k:'seguro',icon:'🛡',label:'Seguro',cls:'s'},
-    {k:'transfer',icon:'🚗',label:'Transfer',cls:'p'},
-  ].map(s=>{
+  const svcItems=[{k:'hospedagem',icon:'🏨',label:'Hospedagem',cls:'h'},{k:'aereo',icon:'✈',label:'Aéreo',cls:'a'},{k:'seguro',icon:'🛡',label:'Seguro',cls:'s'},{k:'transfer',icon:'🚗',label:'Transfer',cls:'p'}].map(s=>{
     const has=(c.servicos||[]).includes(s.k);
-    return`<label class="svc-check${has?' checked-'+s.cls:''}" id="svcl-${s.k}">
-      <input type="checkbox" ${has?'checked':''} onchange="toggleSvcCard('${c.id}','${s.k}')">
-      ${s.icon} ${s.label}
-    </label>`;
+    return`<label class="svc-check${has?' checked-'+s.cls:''}" id="svcl-${s.k}"><input type="checkbox" ${has?'checked':''} onchange="toggleSvcCard('${c.id}','${s.k}')">${s.icon} ${s.label}</label>`;
   }).join('');
   const aereoBox=c.abrioAereo?`<div class="aereo-box"><i class="ti ti-plane"></i><span>Aéreo abre em <strong>${fmt(c.abrioAereo)}</strong>${ae&&ae.cls?` <span class="${ae.cls}" style="margin-left:4px;">${ae.label}</span>`:''}</span></div>`:'';
   const finBtn=isFinalizable(c)&&c.col!=='finalizado'?`<button class="finalize-btn" onclick="quickFinalize('${c.id}')"><i class="ti ti-circle-check"></i> Mover para Finalizado</button>`:'';
-  return`
-    <div class="panel-section">
-      <div class="panel-section-title">Dados da venda</div>
-      <div class="info-grid">
-        <div class="info-field full"><span class="info-label">Casamento</span><select class="info-value editable" id="pf-wedding">${wOpts}</select></div>
-        <div class="info-field"><span class="info-label">Chegada</span><input class="info-value editable" type="date" id="pf-chegada" value="${c.chegada||''}"></div>
-        <div class="info-field"><span class="info-label">Saída</span><input class="info-value editable" type="date" id="pf-saida" value="${c.saida||''}"></div>
-        <div class="info-field full"><span class="info-label">Produto</span><input class="info-value editable" id="pf-produto" value="${c.produto||''}"></div>
-        <div class="info-field full"><span class="info-label">Fornecedor</span><input class="info-value editable" id="pf-fornecedor" value="${c.fornecedor||''}"></div>
-      </div>
-    </div>
-    <div class="panel-section">
-      <div class="panel-section-title">Serviços</div>
-      <div class="svc-checks">${svcItems}</div>
-    </div>
-    ${aereoBox?`<div class="panel-section">${aereoBox}</div>`:''}
-    ${finBtn?`<div class="panel-section">${finBtn}</div>`:''}`;
+  return`<div class="panel-section"><div class="panel-section-title">Dados da venda</div><div class="info-grid">
+    <div class="info-field full"><span class="info-label">Casamento</span><select class="info-value editable" id="pf-wedding">${wOpts}</select></div>
+    <div class="info-field"><span class="info-label">Chegada</span><input class="info-value editable" type="date" id="pf-chegada" value="${c.chegada||''}"></div>
+    <div class="info-field"><span class="info-label">Saída</span><input class="info-value editable" type="date" id="pf-saida" value="${c.saida||''}"></div>
+    <div class="info-field full"><span class="info-label">Produto</span><input class="info-value editable" id="pf-produto" value="${c.produto||''}"></div>
+    <div class="info-field full"><span class="info-label">Fornecedor</span><input class="info-value editable" id="pf-fornecedor" value="${c.fornecedor||''}"></div>
+  </div></div>
+  <div class="panel-section"><div class="panel-section-title">Serviços</div><div class="svc-checks">${svcItems}</div></div>
+  ${aereoBox?`<div class="panel-section">${aereoBox}</div>`:''}
+  ${finBtn?`<div class="panel-section">${finBtn}</div>`:''}`;
 }
-
 function renderTabNotas(c){
   const notas=(c.notas||[]);
-  const list=notas.length
-    ?notas.map((n,i)=>`<div class="note-item">
-      <div class="note-meta"><span class="note-date">${fmtTs(n.ts)}</span>
-      <button class="note-delete" onclick="deleteNote('${c.id}',${i})"><i class="ti ti-trash"></i></button></div>
-      <div class="note-text">${n.text.replace(/</g,'&lt;')}</div>
-    </div>`).join('')
-    :`<div class="empty-state"><i class="ti ti-note-off"></i><span>Nenhuma nota ainda</span></div>`;
-  return`<div class="notes-area">
-    <div style="display:flex;flex-direction:column;gap:6px;">
-      <textarea class="note-textarea" id="noteInput" placeholder="Adicionar uma nota sobre esta venda..."></textarea>
-      <button class="note-add-btn" onclick="addNote('${c.id}')">Adicionar nota</button>
-    </div>
-    <div class="notes-list">${list}</div>
-  </div>`;
+  const list=notas.length?notas.map((n,i)=>`<div class="note-item"><div class="note-meta"><span class="note-date">${fmtTs(n.ts)}</span><button class="note-delete" onclick="deleteNote('${c.id}',${i})"><i class="ti ti-trash"></i></button></div><div class="note-text">${n.text.replace(/</g,'&lt;')}</div></div>`).join(''):`<div class="empty-state"><i class="ti ti-note-off"></i><span>Nenhuma nota ainda</span></div>`;
+  return`<div class="notes-area"><div style="display:flex;flex-direction:column;gap:6px;"><textarea class="note-textarea" id="noteInput" placeholder="Adicionar uma nota sobre esta venda..."></textarea><button class="note-add-btn" onclick="addNote('${c.id}')">Adicionar nota</button></div><div class="notes-list">${list}</div></div>`;
 }
-
 function renderTabHist(c){
   const hist=(c.historico||[]);
   const ICONS={Movido:'ti-arrows-exchange',Serviço:'ti-shopping-cart',Nota:'ti-note',Dados:'ti-edit'};
   if(!hist.length)return`<div class="history-list"><div class="empty-state"><i class="ti ti-history"></i><span>Sem histórico ainda</span></div></div>`;
-  return`<div class="history-list">${hist.map(h=>{
-    const ik=Object.keys(ICONS).find(k=>h.action.startsWith(k))||'Dados';
-    return`<div class="history-item">
-      <div class="history-dot"><i class="ti ${ICONS[ik]}" style="font-size:10px;color:var(--text-dim);"></i></div>
-      <div class="history-content"><div class="history-action">${h.action}</div><div class="history-time">${fmtTs(h.ts)}</div></div>
-    </div>`;
-  }).join('')}</div>`;
+  return`<div class="history-list">${hist.map(h=>{const ik=Object.keys(ICONS).find(k=>h.action.startsWith(k))||'Dados';return`<div class="history-item"><div class="history-dot"><i class="ti ${ICONS[ik]}" style="font-size:10px;color:var(--text-dim);"></i></div><div class="history-content"><div class="history-action">${h.action}</div><div class="history-time">${fmtTs(h.ts)}</div></div></div>`;}).join('')}</div>`;
 }
-
-// ── PANEL ACTIONS ──────────────────────────────────────────────────────────────
-function changeCol(id,cid){
-  const c=cards.find(x=>x.id===id); if(!c) return;
-  const oL=cols.find(x=>x.id===c.col)?.label||c.col;
-  const nL=cols.find(x=>x.id===cid)?.label||cid;
-  if(c.col!==cid){addHistory(c,`Movido de "${oL}" para "${nL}"`);}
-  c.col=cid; save(); renderPanel(); render();
-}
-function toggleSvcCard(id,svc){
-  const c=cards.find(x=>x.id===id); if(!c) return;
-  if(!c.servicos)c.servicos=[];
-  const had=c.servicos.includes(svc);
-  if(had)c.servicos=c.servicos.filter(s=>s!==svc); else c.servicos.push(svc);
-  addHistory(c,`Serviço "${svc}" ${had?'removido':'adicionado'}`);
-  const lbl=document.getElementById(`svcl-${svc}`);
-  const SC={hospedagem:'h',aereo:'a',seguro:'s',transfer:'p'};
-  if(lbl)lbl.className='svc-check'+(!had?' checked-'+(SC[svc]||'h'):'');
-  if(isFinalizable(c)&&c.col!=='finalizado'&&c.col!=='oportunidade_futura'){c.col='finalizado';addHistory(c,'Movido para "Finalizado" automaticamente');}
-  save(); renderPanel(); render();
-}
-function addNote(id){
-  const c=cards.find(x=>x.id===id); if(!c) return;
-  const input=document.getElementById('noteInput');
-  const text=input.value.trim(); if(!text) return;
-  if(!c.notas)c.notas=[];
-  c.notas.unshift({ts:Date.now(),text});
-  addHistory(c,'Nota adicionada');
-  input.value=''; save(); renderPanelBody();
-}
-function deleteNote(id,idx){
-  const c=cards.find(x=>x.id===id); if(!c) return;
-  c.notas.splice(idx,1); addHistory(c,'Nota removida'); save(); renderPanelBody();
-}
-function savePanel(id){
-  const c=cards.find(x=>x.id===id); if(!c) return;
-  const wed=document.getElementById('pf-wedding')?.value||c.casamento;
-  const chegada=document.getElementById('pf-chegada')?.value||'';
-  const saida=document.getElementById('pf-saida')?.value||'';
-  const produto=document.getElementById('pf-produto')?.value||'';
-  const fornecedor=document.getElementById('pf-fornecedor')?.value||'';
-  c.casamento=wed; c.chegada=chegada; c.saida=saida; c.produto=produto; c.fornecedor=fornecedor;
-  addHistory(c,'Dados salvos'); delete c.isNew;
-  save(); renderPanel(); render();
-}
-function quickFinalize(id){
-  const c=cards.find(x=>x.id===id); if(!c) return;
-  c.col='finalizado'; addHistory(c,'Movido para "Finalizado"');
-  save(); if(activePanelId===id)renderPanel(); render();
-}
+function changeCol(id,cid){const c=cards.find(x=>x.id===id);if(!c)return;const oL=cols.find(x=>x.id===c.col)?.label||c.col;const nL=cols.find(x=>x.id===cid)?.label||cid;if(c.col!==cid)addHistory(c,`Movido de "${oL}" para "${nL}"`);c.col=cid;save();renderPanel();render();}
+function toggleSvcCard(id,svc){const c=cards.find(x=>x.id===id);if(!c)return;if(!c.servicos)c.servicos=[];const had=c.servicos.includes(svc);if(had)c.servicos=c.servicos.filter(s=>s!==svc);else c.servicos.push(svc);addHistory(c,`Serviço "${svc}" ${had?'removido':'adicionado'}`);const lbl=document.getElementById(`svcl-${svc}`);const SC={hospedagem:'h',aereo:'a',seguro:'s',transfer:'p'};if(lbl)lbl.className='svc-check'+(!had?' checked-'+(SC[svc]||'h'):'');if(isFinalizable(c)&&c.col!=='finalizado'&&c.col!=='oportunidade_futura'){c.col='finalizado';addHistory(c,'Movido para "Finalizado" automaticamente');}save();renderPanel();render();}
+function addNote(id){const c=cards.find(x=>x.id===id);if(!c)return;const input=document.getElementById('noteInput');const text=input.value.trim();if(!text)return;if(!c.notas)c.notas=[];c.notas.unshift({ts:Date.now(),text});addHistory(c,'Nota adicionada');input.value='';save();renderPanelBody();}
+function deleteNote(id,idx){const c=cards.find(x=>x.id===id);if(!c)return;c.notas.splice(idx,1);addHistory(c,'Nota removida');save();renderPanelBody();}
+function savePanel(id){const c=cards.find(x=>x.id===id);if(!c)return;const wed=document.getElementById('pf-wedding')?.value||c.casamento;const chegada=document.getElementById('pf-chegada')?.value||'';const saida=document.getElementById('pf-saida')?.value||'';const produto=document.getElementById('pf-produto')?.value||'';const fornecedor=document.getElementById('pf-fornecedor')?.value||'';c.casamento=wed;c.chegada=chegada;c.saida=saida;c.produto=produto;c.fornecedor=fornecedor;addHistory(c,'Dados salvos');delete c.isNew;save();renderPanel();render();}
+function quickFinalize(id){const c=cards.find(x=>x.id===id);if(!c)return;c.col='finalizado';addHistory(c,'Movido para "Finalizado"');save();if(activePanelId===id)renderPanel();render();}
 function delCard(id){cards=cards.filter(c=>c.id!==id);closePanel();save();render();}
-
-// ── COL EDIT ─────────────────────────────────────────────────────────────────
 function startEditCol(id){editingCol=id;render();}
-function commitCol(id){
-  const el=document.getElementById('ci-'+id);
-  if(el){const v=el.value.trim();if(v){const c=cols.find(x=>x.id===id);if(c)c.label=v;}}
-  editingCol=null; save(); render();
-}
-
-// ── MASS ─────────────────────────────────────────────────────────────────────
+function commitCol(id){const el=document.getElementById('ci-'+id);if(el){const v=el.value.trim();if(v){const c=cols.find(x=>x.id===id);if(c)c.label=v;}}editingCol=null;save();render();}
 function toggleMassMode(){massMode=!massMode;if(!massMode)selected.clear();render();}
 function cancelMassMode(){massMode=false;selected.clear();render();}
-function executeMassMove(){
-  const target=document.getElementById('massTarget').value; if(!target||!selected.size)return;
-  cards.forEach(c=>{if(selected.has(c.id)){const oL=cols.find(x=>x.id===c.col)?.label||c.col;const nL=cols.find(x=>x.id===target)?.label||target;addHistory(c,`Movido de "${oL}" para "${nL}"`);c.col=target;}});
-  selected.clear(); save(); render();
-}
-function cardClick(e,id){
-  if(massMode){e.stopPropagation();if(selected.has(id))selected.delete(id);else selected.add(id);render();}
-  else openPanel(id);
-}
+function executeMassMove(){const target=document.getElementById('massTarget').value;if(!target||!selected.size)return;cards.forEach(c=>{if(selected.has(c.id)){const oL=cols.find(x=>x.id===c.col)?.label||c.col;const nL=cols.find(x=>x.id===target)?.label||target;addHistory(c,`Movido de "${oL}" para "${nL}"`);c.col=target;}});selected.clear();save();render();}
+function cardClick(e,id){if(massMode){e.stopPropagation();if(selected.has(id))selected.delete(id);else selected.add(id);render();}else openPanel(id);}
 
-// ── INIT ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{
   load();
   document.getElementById('search').addEventListener('input',e=>{searchT=e.target.value;render();});
   document.getElementById('dateFrom').addEventListener('change',e=>{dateFrom=e.target.value;render();});
   document.getElementById('dateTo').addEventListener('change',e=>{dateTo=e.target.value;render();});
-  document.getElementById('modal')?.addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closePanel();});
-  document.addEventListener('click',e=>{if(!document.getElementById('weddingWrap').contains(e.target))document.getElementById('weddingDropdown').classList.remove('open');});
+  document.addEventListener('click',e=>{if(document.getElementById('weddingWrap')&&!document.getElementById('weddingWrap').contains(e.target))document.getElementById('weddingDropdown').classList.remove('open');});
   render();
 });
 </script>
