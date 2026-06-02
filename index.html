@@ -626,7 +626,7 @@ let vendas = [];
 function loadVendas(){
   try{
     const raw=localStorage.getItem(LS_KEY+'_vendas');
-    if(raw){const d=JSON.parse(raw);if(d.vendas){vendas=d.vendas;const ids=new Set(vendas.map(v=>v.id));VENDAS_SEED.forEach(s=>{if(!ids.has(s.id))vendas.push({...s,notas:[],historico:[]});});return;}}
+    if(raw){const d=JSON.parse(raw);if(d.vendas){vendas=d.vendas;const ids=new Set(vendas.map(v=>v.id));VENDAS_SEED.forEach(s=>{if(!ids.has(s.id))vendas.push({...s,notas:s.notas||[],historico:s.historico||[]});});return;}}
   }catch(e){}
   vendas=VENDAS_SEED.map(s=>({...s,notas:s.notas||[],historico:s.historico||[]}));
 }
@@ -690,24 +690,34 @@ function getTableRows(){
   filtered.forEach(function(v){
     const key=getComboKey(v.servicos||[]);
     if(activeSegKeys.size&&!activeSegKeys.has(key))return;
-    (v.passageiros||[]).forEach(function(p){
-      if(segQ&&!p.nome.toLowerCase().includes(segQ)&&!String(v.vendaNum).includes(segQ))return;
-      rows.push({
-        vendaNum:v.vendaNum,
-        casamento:v.casamento,
-        dataCasamento:v.dataCasamento,
-        hotel:v.hotel||'',
-        cidade:v.cidade||'',
-        chegada:v.chegada||'',
-        saida:v.saida||'',
-        servicos:(v.servicos||[]).join(', '),
-        etapa:cols.find(function(c){return c.id===v.col;})?cols.find(function(c){return c.id===v.col;}).label:v.col,
-        nome:p.nome,
-        email:p.email||'',
-        celular:p.celular||'',
-        telefone:p.telefone||'',
-        cpf:p.cpf||'',
-      });
+    // search filter: match any passageiro name or any venda number
+    if(segQ){
+      const matchesPax=(v.passageiros||[]).some(function(p){return p.nome.toLowerCase().includes(segQ);});
+      const matchesVenda=(v.vendas||[]).join(',').includes(segQ);
+      if(!matchesPax&&!matchesVenda)return;
+    }
+    // one row per VENDA GROUP (all passageiros joined)
+    const nomes=(v.passageiros||[]).map(function(p){return p.nome;}).join(', ');
+    const celulares=[...new Set((v.passageiros||[]).map(function(p){return p.celular;}).filter(Boolean))].join(', ');
+    const emails=[...new Set((v.passageiros||[]).map(function(p){return p.email;}).filter(Boolean))].join(', ');
+    const telefones=[...new Set((v.passageiros||[]).map(function(p){return p.telefone;}).filter(Boolean))].join(', ');
+    const cpfs=(v.passageiros||[]).map(function(p){return p.cpf;}).filter(Boolean).join(', ');
+    rows.push({
+      vendaNum:(v.vendas||[]).join(', '),
+      casamento:v.casamento,
+      dataCasamento:v.dataCasamento,
+      hotel:v.hotel||'',
+      cidade:v.cidade||'',
+      chegada:v.chegada||'',
+      saida:v.saida||'',
+      servicos:(v.servicos||[]).join(', '),
+      etapa:cols.find(function(c){return c.id===v.col;})?cols.find(function(c){return c.id===v.col;}).label:v.col,
+      passageiros:nomes,
+      qtdPax:(v.passageiros||[]).length,
+      email:emails,
+      celular:celulares,
+      telefone:telefones,
+      cpf:cpfs,
     });
   });
   return rows;
@@ -724,14 +734,15 @@ function renderTable(){
   }
   if(!rows.length){document.getElementById('tableContainer').innerHTML='<div class="empty-table">Nenhum passageiro encontrado</div>';return;}
   let thtml='<div style="overflow-x:auto;"><table class="data-table"><thead><tr>'+
-    '<th>Venda #</th><th>Nome</th><th>Casamento</th><th>Data casamento</th>'+
+    '<th>Venda(s)</th><th>Passageiros</th><th>Qtd</th><th>Casamento</th><th>Data casamento</th>'+
     '<th>Hotel</th><th>Cidade</th><th>Chegada</th><th>Saida</th>'+
-    '<th>Servicos</th><th>Etapa</th><th>E-mail</th><th>Celular</th><th>Telefone</th><th>CPF</th>'+
+    '<th>Servicos</th><th>Etapa</th><th>E-mail(s)</th><th>Celular(es)</th><th>Telefone(s)</th><th>CPF(s)</th>'+
     '</tr></thead><tbody>';
   rows.forEach(function(r){
     thtml+='<tr>'+
-      '<td class="td-mono">'+r.vendaNum+'</td>'+
-      '<td class="td-name">'+r.nome+'</td>'+
+      '<td class="td-mono" style="white-space:nowrap;">'+r.vendaNum+'</td>'+
+      '<td class="td-name">'+r.passageiros+'</td>'+
+      '<td style="text-align:center;">'+r.qtdPax+'</td>'+
       '<td>'+r.casamento+'</td>'+
       '<td>'+fmt(r.dataCasamento)+'</td>'+
       '<td>'+r.hotel+'</td>'+
@@ -740,7 +751,7 @@ function renderTable(){
       '<td>'+fmt(r.saida)+'</td>'+
       '<td>'+r.servicos+'</td>'+
       '<td>'+r.etapa+'</td>'+
-      '<td>'+(r.email?'<a href="mailto:'+r.email+'" style="color:var(--blue);text-decoration:none;">'+r.email+'</a>':'')+'</td>'+
+      '<td>'+r.email+'</td>'+
       '<td>'+r.celular+'</td>'+
       '<td>'+r.telefone+'</td>'+
       '<td class="td-mono">'+r.cpf+'</td>'+
@@ -753,10 +764,10 @@ function renderTable(){
 function exportCSV(){
   const rows=getTableRows();
   if(!rows.length){alert('Nenhum passageiro para exportar.');return;}
-  const headers=['Venda No','Nome','Casamento','Data Casamento','Hotel','Cidade','Chegada','Saida','Servicos','Etapa','Email','Celular','Telefone','CPF'];
+  const headers=['Venda(s)','Passageiros','Qtd','Casamento','Data Casamento','Hotel','Cidade','Chegada','Saida','Servicos','Etapa','Email(s)','Celular(es)','Telefone(s)','CPF(s)'];
   const lines=[headers.join(',')];
   rows.forEach(function(r){
-    lines.push([r.vendaNum,r.nome,r.casamento,r.dataCasamento,r.hotel,r.cidade,r.chegada,r.saida,r.servicos,r.etapa,r.email,r.celular,r.telefone,r.cpf].map(function(v){return '"'+String(v||'').replace(/"/g,'""')+'"';}).join(','));
+    lines.push([r.vendaNum,r.passageiros,r.qtdPax,r.casamento,r.dataCasamento,r.hotel,r.cidade,r.chegada,r.saida,r.servicos,r.etapa,r.email,r.celular,r.telefone,r.cpf].map(function(v){return '"'+String(v||'').replace(/"/g,'""')+'"';}).join(','));
   });
   const blob=new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8;'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ww_segmentacao_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
@@ -764,11 +775,11 @@ function exportCSV(){
 function exportXLSX(){
   const rows=getTableRows();
   if(!rows.length){alert('Nenhum passageiro para exportar.');return;}
-  const wsData=[['Venda No','Nome','Casamento','Data Casamento','Hotel','Cidade','Chegada','Saida','Servicos','Etapa','Email','Celular','Telefone','CPF']];
-  rows.forEach(function(r){wsData.push([r.vendaNum,r.nome,r.casamento,r.dataCasamento,r.hotel,r.cidade,r.chegada,r.saida,r.servicos,r.etapa,r.email,r.celular,r.telefone,r.cpf]);});
+  const wsData=[['Venda(s)','Passageiros','Qtd','Casamento','Data Casamento','Hotel','Cidade','Chegada','Saida','Servicos','Etapa','Email(s)','Celular(es)','Telefone(s)','CPF(s)']];
+  rows.forEach(function(r){wsData.push([r.vendaNum,r.passageiros,r.qtdPax,r.casamento,r.dataCasamento,r.hotel,r.cidade,r.chegada,r.saida,r.servicos,r.etapa,r.email,r.celular,r.telefone,r.cpf]);});
   const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.aoa_to_sheet(wsData);
-  ws['!cols']=[{wch:9},{wch:28},{wch:20},{wch:13},{wch:28},{wch:20},{wch:11},{wch:11},{wch:26},{wch:15},{wch:30},{wch:16},{wch:14},{wch:16}];
+  ws['!cols']=[{wch:14},{wch:40},{wch:5},{wch:20},{wch:13},{wch:28},{wch:20},{wch:11},{wch:11},{wch:26},{wch:15},{wch:30},{wch:18},{wch:16},{wch:16}];
   XLSX.utils.book_append_sheet(wb,ws,'Segmentacao');
   XLSX.writeFile(wb,'ww_segmentacao_'+new Date().toISOString().slice(0,10)+'.xlsx');
 }
